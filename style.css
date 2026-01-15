@@ -1,0 +1,418 @@
+/* style.css */
+
+:root {
+    --primary-color: #00e676; /* Màu xanh lá nổi bật, chất tech */
+    --secondary-color: #616161; /* Màu xám đậm */
+    --dark-bg: #1a1a1a; /* Nền tối siêu "ngầu" */
+    --darker-bg: #121212; /* Nền tối hơn nữa */
+    --text-color: #e0e0e0; /* Màu chữ sáng cho nền tối */
+    --white-color: #ffffff; /* Màu trắng tinh khôi */
+    --font-heading: 'Space Grotesk', sans-serif; /* Font tiêu đề hiện đại, công nghệ */
+    --font-body: 'IBM Plex Mono', monospace; /* Font code-like, dễ đọc */
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--text-color);
+    line-height: 1.8;
+    background-color: var(--dark-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--white-color);
+    font-weight: 700;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.bg-darker {
+    background-color: var(--darker-bg) !important;
+}
+
+/* Header & Navbar Styling */
+.header {
+    background-color: var(--darker-bg); /* Nền header tối hơn */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background-color 0.3s ease-in-out;
+    z-index: 1030;
+}
+
+.header.scrolled {
+    background-color: rgba(18, 18, 18, 0.95); /* Hiệu ứng mờ khi cuộn */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+}
+
+.navbar-brand {
+    font-family: var(--font-heading);
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    transition: color 0.3s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--font-heading);
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: var(--primary-color);
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.6%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Hero Section Styling */
+.hero-section {
+    min-height: 100vh;
+    background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://via.placeholder.com/1920x1080/000000/4CAF50?text=Code+Background') no-repeat center center/cover;
+    position: relative;
+    overflow: hidden;
+    display: flex; /* Đảm bảo căn giữa dễ hơn */
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.hero-title {
+    font-size: 3.8rem;
+    line-height: 1.2;
+    font-family: var(--font-heading);
+    margin-bottom: 1.5rem;
+}
+
+.hero-description {
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    color: var(--text-color);
+    font-size: 1.15rem;
+    margin-bottom: 3rem !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    padding: 0.8rem 2.2rem;
+    font-weight: 600;
+    border-radius: 5px;
+    transition: all 0.3s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--font-heading);
+    color: var(--darker-bg); /* Màu chữ tối trên nền sáng */
+}
+
+.btn-primary:hover {
+    background-color: #00c853; /* Một sắc thái xanh lá đậm hơn */
+    border-color: #00c853;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 230, 118, 0.25);
+    color: var(--darker-bg);
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.8rem 2.2rem;
+    font-weight: 600;
+    border-radius: 5px;
+    transition: all 0.3s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--font-heading);
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Typewriter effect customization */
+.typewriter .typed-cursor {
+    font-size: 3rem;
+    opacity: 1;
+    -webkit-animation: blink 0.7s infinite;
+    -moz-animation: blink 0.7s infinite;
+    animation: blink 0.7s infinite;
+    color: var(--primary-color);
+}
+
+@-webkit-keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+@-moz-keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+
+/* General Section Styling */
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 2.8rem;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 1rem;
+    color: var(--white-color);
+    text-transform: uppercase;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+    height: 4px;
+    width: 80px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+/* About Section Styling */
+.about-section {
+    background-color: var(--dark-bg);
+}
+.about-section .profile-img {
+    border: 5px solid var(--primary-color);
+    object-fit: cover;
+    object-position: center;
+    filter: grayscale(80%); /* Hiệu ứng ảnh hơi xám cho chất */
+    transition: filter 0.3s ease-in-out;
+}
+.about-section .profile-img:hover {
+    filter: grayscale(0%); /* Ảnh màu khi hover */
+}
+
+.info-list li {
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-family: var(--font-body);
+}
+
+.info-list li i {
+    font-size: 1.3rem;
+}
+
+/* Skills Section Styling */
+.skills-section {
+    background-color: var(--darker-bg);
+}
+.skill-card {
+    background-color: var(--dark-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    color: var(--text-color);
+}
+
+.skill-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+    border-color: var(--primary-color);
+}
+
+.skill-card i {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+.skill-card h4 {
+    font-family: var(--font-heading);
+    color: var(--white-color);
+}
+.skill-card p {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.skill-card.skill-developing {
+    opacity: 0.7; /* Làm mờ một chút để phân biệt */
+}
+.skill-card.skill-developing i,
+.skill-card.skill-developing h4 {
+    color: var(--secondary-color) !important;
+}
+
+
+/* Mindset / Philosophy Section Styling */
+.mindset-section {
+    background-color: var(--dark-bg);
+}
+.philosophy-card {
+    background-color: var(--darker-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-color);
+}
+.philosophy-card h3 {
+    color: var(--primary-color);
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.philosophy-card p {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+/* Contact Section Styling */
+.contact-section {
+    background-color: var(--darker-bg);
+}
+.contact-form-wrapper {
+    background-color: var(--dark-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-color);
+}
+
+.contact-form-wrapper .form-label {
+    color: var(--text-color);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.contact-form-wrapper .form-control,
+.contact-form-wrapper .form-select {
+    border-radius: 5px;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--white-color);
+    font-family: var(--font-body);
+}
+
+.contact-form-wrapper .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.contact-form-wrapper .form-control:focus,
+.contact-form-wrapper .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(0, 230, 118, 0.25);
+    background-color: var(--dark-bg);
+    color: var(--white-color);
+}
+
+/* Footer Styling */
+.footer {
+    background-color: var(--darker-bg);
+    color: rgba(255, 255, 255, 0.6);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.footer p {
+    font-family: var(--font-body);
+}
+
+.footer .social-links a {
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s ease-in-out;
+}
+
+.footer .social-links a:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background-color: var(--darker-bg);
+        padding: 1rem 0;
+        text-align: center;
+    }
+    .navbar-nav .nav-link {
+        padding: 0.75rem 0;
+    }
+    .hero-title {
+        font-size: 3rem;
+    }
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+    .section-title {
+        font-size: 2.2rem;
+    }
+    .about-section img {
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    .hero-description {
+        font-size: 1rem;
+    }
+    .btn-lg {
+        padding: 0.7rem 1.8rem;
+        font-size: 1rem;
+    }
+    .section-title {
+        font-size: 2rem;
+    }
+    .info-list li {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    .hero-description {
+        font-size: 0.9rem;
+    }
+    .btn-lg {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    .section-title {
+        font-size: 1.8rem;
+        padding-bottom: 0.8rem;
+    }
+    .section-title::after {
+        width: 50px;
+    }
+    .philosophy-card p {
+        font-size: 1rem;
+    }
+}
