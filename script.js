@@ -542,83 +542,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Text to Speech ---
+    // --- Text to Speech (ElevenLabs API) ---
     var ttsInput = document.getElementById('ttsInput');
     var ttsPlay = document.getElementById('ttsPlay');
-    var ttsPause = document.getElementById('ttsPause');
     var ttsStop = document.getElementById('ttsStop');
     var ttsRate = document.getElementById('ttsRate');
-    var ttsPitch = document.getElementById('ttsPitch');
     var ttsRateValue = document.getElementById('ttsRateValue');
-    var ttsPitchValue = document.getElementById('ttsPitchValue');
     var ttsStatus = document.getElementById('ttsStatus');
-    var ttsVoiceList = document.getElementById('ttsVoiceList');
-    var ttsSelectedVoice = null;
-    var synth = window.speechSynthesis;
+    var ttsAudio = document.getElementById('ttsAudio');
+    var ttsAudioWrap = document.getElementById('ttsAudioWrap');
+    var ttsApiKey = 'sk_cb8297958677e6bd0717769d710d8a2a246ab6c120fd2973';
+    var ttsVoiceId = 'ZsjEJaLQy3sgvwxicmDx';
 
-    // Tải danh sách giọng - load nhanh
-    var voicesLoaded = false;
-    function loadVoices() {
-        if (voicesLoaded) return;
-        var voices = synth.getVoices();
-        if (voices.length === 0) return;
+    ttsRate.addEventListener('input', function() { ttsRateValue.textContent = parseFloat(this.value).toFixed(1); });
 
-        var vietnameseVoices = voices.filter(function(v) {
-            return v.lang.startsWith('vi');
-        });
-
-        voicesLoaded = true;
-        ttsVoiceList.innerHTML = '';
-
-        if (vietnameseVoices.length === 0) {
-            ttsVoiceList.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-size:0.85rem;">Khong tim thay giong Viet Nam. Se dung giong mac dinh khi phat.</p>';
-            return;
-        }
-
-        vietnameseVoices.forEach(function(voice, i) {
-            var div = document.createElement('div');
-            div.className = 'tts-voice-item';
-            var isMale = voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('nam') || voice.name.toLowerCase().includes('minh') || voice.name.toLowerCase().includes('ha noi');
-            div.innerHTML = '<i class="bi bi-person-fill"></i> ' + voice.name + (isMale ? ' <span class="badge bg-primary" style="font-size:0.6rem;">NAM</span>' : '');
-            div.addEventListener('click', function() {
-                document.querySelectorAll('.tts-voice-item').forEach(function(v) { v.classList.remove('active'); });
-                div.classList.add('active');
-                ttsSelectedVoice = voice;
-            });
-            ttsVoiceList.appendChild(div);
-        });
-
-        // Tu chon giong nam
-        var maleVoice = vietnameseVoices.find(function(v) {
-            return v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('nam') || v.name.toLowerCase().includes('minh');
-        });
-        if (!maleVoice && vietnameseVoices.length > 0) maleVoice = vietnameseVoices[0];
-        if (maleVoice) {
-            ttsSelectedVoice = maleVoice;
-            var items = ttsVoiceList.querySelectorAll('.tts-voice-item');
-            if (items.length > 0) items[0].classList.add('active');
-        }
-    }
-
-    if (synth) {
-        // Load ngay lap tuc
-        loadVoices();
-        // Poll nhanh: moi 200ms trong 5s dau
-        var voiceInterval = setInterval(function() {
-            loadVoices();
-            if (voicesLoaded) clearInterval(voiceInterval);
-        }, 200);
-        setTimeout(function() { clearInterval(voiceInterval); }, 5000);
-        // Lang nghe event
-        if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = function() { loadVoices(); };
-        }
-    }
-
-    ttsRate.addEventListener('input', function() { ttsRateValue.textContent = this.value; });
-    ttsPitch.addEventListener('input', function() { ttsPitchValue.textContent = this.value; });
-
-    ttsPlay.addEventListener('click', function() {
+    ttsPlay.addEventListener('click', async function() {
         var text = ttsInput.value.trim();
         if (!text) {
             ttsStatus.textContent = 'Nhap text truoc!';
@@ -626,47 +564,57 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        synth.cancel();
-        var utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'vi-VN';
-        utter.rate = parseFloat(ttsRate.value);
-        utter.pitch = parseFloat(ttsPitch.value);
-        if (ttsSelectedVoice) utter.voice = ttsSelectedVoice;
+        ttsPlay.disabled = true;
+        ttsStatus.textContent = 'Dang tai am thanh...';
+        ttsStatus.className = 'tool-status text-warning';
 
-        utter.onstart = function() {
-            ttsStatus.textContent = 'Dang doc...';
-            ttsStatus.className = 'tool-status text-success';
-            ttsPlay.style.display = 'none';
-            ttsPause.style.display = 'inline-block';
-        };
-        utter.onend = function() {
-            ttsStatus.textContent = 'Hoan tat!';
-            ttsStatus.className = 'tool-status';
-            ttsPlay.style.display = 'inline-block';
-            ttsPause.style.display = 'none';
-        };
+        try {
+            var response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + ttsVoiceId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'xi-api-key': ttsApiKey
+                },
+                body: JSON.stringify({
+                    text: text,
+                    model_id: 'eleven_multilingual_v2',
+                    voice_settings: {
+                        stability: 0.5,
+                        similarity_boost: 0.75,
+                        speed: parseFloat(ttsRate.value)
+                    }
+                })
+            });
 
-        synth.speak(utter);
-    });
-
-    ttsPause.addEventListener('click', function() {
-        if (synth.speaking) {
-            if (synth.paused) {
-                synth.resume();
-                ttsStatus.textContent = 'Dang doc...';
-                ttsPause.querySelector('i').className = 'bi bi-pause-fill';
-            } else {
-                synth.pause();
-                ttsStatus.textContent = 'Tam dung';
-                ttsPause.querySelector('i').className = 'bi bi-play-fill';
+            if (!response.ok) {
+                var errData = await response.json().catch(function() { return {}; });
+                throw new Error(errData.detail ? errData.detail.message : 'Loi API: ' + response.status);
             }
+
+            var blob = await response.blob();
+            var url = URL.createObjectURL(blob);
+            ttsAudio.src = url;
+            ttsAudioWrap.style.display = 'block';
+            ttsAudio.play();
+            ttsStatus.textContent = 'Dang phat...';
+            ttsStatus.className = 'tool-status text-success';
+
+            ttsAudio.onended = function() {
+                ttsStatus.textContent = 'Hoan tat!';
+                ttsStatus.className = 'tool-status';
+                ttsPlay.disabled = false;
+            };
+        } catch (err) {
+            ttsStatus.textContent = 'Loi: ' + err.message;
+            ttsStatus.className = 'tool-status text-danger';
+            ttsPlay.disabled = false;
         }
     });
 
     ttsStop.addEventListener('click', function() {
-        synth.cancel();
+        ttsAudio.pause();
+        ttsAudio.currentTime = 0;
         ttsStatus.textContent = '';
-        ttsPlay.style.display = 'inline-block';
-        ttsPause.style.display = 'none';
+        ttsPlay.disabled = false;
     });
 });

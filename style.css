@@ -797,6 +797,31 @@ h1, h2, h3, h4, h5, h6 {
     padding-top: 0.75rem;
 }
 
+.tts-voice-info {
+    background: var(--darker-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+}
+
+.tts-voice-avatar {
+    width: 70px;
+    height: 70px;
+    background: rgba(0, 230, 118, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.tts-voice-info h5 {
+    margin-bottom: 4px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 991.98px) {
     .navbar-collapse {
