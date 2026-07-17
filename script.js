@@ -443,11 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // QR Image Upload - Click
+    // QR Image Upload - Drag & Drop
     var qrImageDrop = document.getElementById('qrImageDrop');
     var qrImageInput = document.getElementById('qrImageInput');
     if (qrImageDrop) {
-        qrImageDrop.addEventListener('click', function() { qrImageInput.click(); });
         qrImageDrop.addEventListener('dragover', function(e) { e.preventDefault(); this.style.borderColor = 'var(--primary-color)'; });
         qrImageDrop.addEventListener('dragleave', function() { this.style.borderColor = ''; });
         qrImageDrop.addEventListener('drop', function(e) {
@@ -456,6 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.dataTransfer.files.length) handleQRImage(e.dataTransfer.files[0]);
         });
     }
+    // Label[for] tự xử lý click, chỉ cần lắng nghe change
     if (qrImageInput) {
         qrImageInput.addEventListener('change', function() {
             if (this.files.length) handleQRImage(this.files[0]);
@@ -556,23 +556,29 @@ document.addEventListener('DOMContentLoaded', function() {
     var ttsSelectedVoice = null;
     var synth = window.speechSynthesis;
 
-    // Tải danh sách giọng
+    // Tải danh sách giọng - load nhanh
+    var voicesLoaded = false;
     function loadVoices() {
+        if (voicesLoaded) return;
         var voices = synth.getVoices();
+        if (voices.length === 0) return;
+
         var vietnameseVoices = voices.filter(function(v) {
             return v.lang.startsWith('vi');
         });
 
+        voicesLoaded = true;
+        ttsVoiceList.innerHTML = '';
+
         if (vietnameseVoices.length === 0) {
-            ttsVoiceList.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-size:0.85rem;">Trinh duyet cua ban khong ho tro giong Viet Nam. Se dung giong mac dinh.</p>';
+            ttsVoiceList.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-size:0.85rem;">Khong tim thay giong Viet Nam. Se dung giong mac dinh khi phat.</p>';
             return;
         }
 
-        ttsVoiceList.innerHTML = '';
         vietnameseVoices.forEach(function(voice, i) {
             var div = document.createElement('div');
             div.className = 'tts-voice-item';
-            var isMale = voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('nam') || (i % 2 === 0 && vietnameseVoices.length > 1);
+            var isMale = voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('nam') || voice.name.toLowerCase().includes('minh') || voice.name.toLowerCase().includes('ha noi');
             div.innerHTML = '<i class="bi bi-person-fill"></i> ' + voice.name + (isMale ? ' <span class="badge bg-primary" style="font-size:0.6rem;">NAM</span>' : '');
             div.addEventListener('click', function() {
                 document.querySelectorAll('.tts-voice-item').forEach(function(v) { v.classList.remove('active'); });
@@ -582,9 +588,9 @@ document.addEventListener('DOMContentLoaded', function() {
             ttsVoiceList.appendChild(div);
         });
 
-        // Tự chọn giọng nam
+        // Tu chon giong nam
         var maleVoice = vietnameseVoices.find(function(v) {
-            return v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('nam');
+            return v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('nam') || v.name.toLowerCase().includes('minh');
         });
         if (!maleVoice && vietnameseVoices.length > 0) maleVoice = vietnameseVoices[0];
         if (maleVoice) {
@@ -595,9 +601,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (synth) {
+        // Load ngay lap tuc
         loadVoices();
+        // Poll nhanh: moi 200ms trong 5s dau
+        var voiceInterval = setInterval(function() {
+            loadVoices();
+            if (voicesLoaded) clearInterval(voiceInterval);
+        }, 200);
+        setTimeout(function() { clearInterval(voiceInterval); }, 5000);
+        // Lang nghe event
         if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = loadVoices;
+            synth.onvoiceschanged = function() { loadVoices(); };
         }
     }
 
