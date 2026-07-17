@@ -242,6 +242,7 @@
                     <button class="tool-tab" data-tool="color"><i class="bi bi-palette"></i> Color Picker</button>
                     <button class="tool-tab" data-tool="qr"><i class="bi bi-qr-code"></i> QR Code</button>
                     <button class="tool-tab" data-tool="markdown"><i class="bi bi-markdown"></i> Markdown</button>
+                    <button class="tool-tab" data-tool="tts"><i class="bi bi-speaker"></i> Text to Speech</button>
                 </div>
 
                 <!-- Tool: JSON Formatter -->
@@ -346,14 +347,39 @@
                     <div class="tool-card p-4 rounded-4">
                         <div class="tool-header">
                             <h4><i class="bi bi-qr-code text-primary"></i> QR Code Generator</h4>
-                            <p>Nhập link hoặc text để tạo QR Code</p>
+                            <p>Tạo QR Code từ text, link hoặc upload ảnh</p>
                         </div>
-                        <div class="row g-3 align-items-center">
+                        <div class="row g-3 align-items-start">
                             <div class="col-md-7">
-                                <label class="form-label">Nhập nội dung</label>
-                                <textarea id="qrInput" class="tool-textarea" rows="4" placeholder="https://example.com hoặc text bất kỳ..."></textarea>
-                                <button id="qrGenerate" class="btn btn-primary btn-sm mt-3"><i class="bi bi-qr-code"></i> Tạo QR Code</button>
-                                <button id="qrDownload" class="btn btn-outline-light btn-sm mt-3" style="display:none"><i class="bi bi-download"></i> Tải về</button>
+                                <!-- Tabs chuyển đổi text/ảnh -->
+                                <div class="qr-mode-tabs">
+                                    <button class="qr-mode-tab active" data-mode="text"><i class="bi bi-fonts"></i> Text / Link</button>
+                                    <button class="qr-mode-tab" data-mode="image"><i class="bi bi-image"></i> Upload ảnh</button>
+                                </div>
+
+                                <!-- Mode: Text -->
+                                <div id="qr-mode-text" class="qr-mode active">
+                                    <textarea id="qrInput" class="tool-textarea" rows="4" placeholder="https://example.com hoặc text bất kỳ..."></textarea>
+                                </div>
+
+                                <!-- Mode: Image -->
+                                <div id="qr-mode-image" class="qr-mode">
+                                    <div id="qrImageDrop" class="qr-image-drop">
+                                        <i class="bi bi-cloud-arrow-up"></i>
+                                        <p>Kéo thả ảnh vào đây hoặc click để chọn</p>
+                                        <input type="file" id="qrImageInput" accept="image/*" style="display:none">
+                                    </div>
+                                    <div id="qrImagePreview" class="qr-image-preview" style="display:none">
+                                        <img id="qrPreviewImg" src="" alt="Preview">
+                                        <button id="qrRemoveImage" class="btn btn-outline-light btn-sm mt-2"><i class="bi bi-x-lg"></i> Xóa ảnh</button>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <button id="qrGenerate" class="btn btn-primary btn-sm"><i class="bi bi-qr-code"></i> Tạo QR Code</button>
+                                    <button id="qrDownload" class="btn btn-outline-light btn-sm" style="display:none"><i class="bi bi-download"></i> Tải về</button>
+                                    <span id="qrStatus" class="tool-status"></span>
+                                </div>
                             </div>
                             <div class="col-md-5 text-center">
                                 <div id="qrOutput" class="qr-output">
@@ -380,6 +406,49 @@
                                 <label class="form-label">Preview</label>
                                 <div id="mdOutput" class="tool-textarea tool-output md-preview" rows="12">
                                     <p style="color: rgba(255,255,255,0.3);">Kết quả preview sẽ hiển thị ở đây...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tool: Text to Speech -->
+                <div id="tool-tts" class="tool-panel">
+                    <div class="tool-card p-4 rounded-4">
+                        <div class="tool-header">
+                            <h4><i class="bi bi-speaker text-primary"></i> Text to Speech</h4>
+                            <p>Nhập text, chọn tốc độ rồi nghe giọng nam Việt Nam</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <label class="form-label">Nhập nội dung</label>
+                                <textarea id="ttsInput" class="tool-textarea" rows="8" placeholder="Nhập text muốn đọc thành tiếng..."></textarea>
+                                <div class="tts-controls mt-3">
+                                    <div class="tts-slider-group">
+                                        <label>Tốc độ: <span id="ttsRateValue">1</span>x</label>
+                                        <input type="range" id="ttsRate" min="0.5" max="2" step="0.1" value="1" class="tts-slider">
+                                    </div>
+                                    <div class="tts-slider-group">
+                                        <label>Cao độ: <span id="ttsPitchValue">1</span></label>
+                                        <input type="range" id="ttsPitch" min="0.5" max="2" step="0.1" value="1" class="tts-slider">
+                                    </div>
+                                </div>
+                                <div class="tts-actions mt-3">
+                                    <button id="ttsPlay" class="btn btn-primary btn-sm"><i class="bi bi-play-fill"></i> Phát</button>
+                                    <button id="ttsPause" class="btn btn-outline-light btn-sm" style="display:none"><i class="bi bi-pause-fill"></i> Tạm dừng</button>
+                                    <button id="ttsStop" class="btn btn-outline-light btn-sm"><i class="bi bi-stop-fill"></i> Dừng</button>
+                                    <span id="ttsStatus" class="tool-status"></span>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <label class="form-label">Chọn giọng</label>
+                                <div id="ttsVoiceList" class="tts-voice-list">
+                                    <p style="color: rgba(255,255,255,0.3); font-size:0.85rem;">Đang tải danh sách giọng...</p>
+                                </div>
+                                <div class="tts-info mt-3">
+                                    <small style="color: rgba(255,255,255,0.4);">
+                                        <i class="bi bi-info-circle"></i> Trình duyệt sẽ tự chọn giọng nam Việt Nam mặc định. Nếu không có, sẽ dùng giọng Việt Nam khả dụng.
+                                    </small>
                                 </div>
                             </div>
                         </div>

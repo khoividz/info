@@ -429,19 +429,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- QR Code ---
     var qrCodeInstance = null;
+    var qrCurrentMode = 'text';
+    var qrImageDataURL = null;
+
+    // QR Mode Tabs
+    document.querySelectorAll('.qr-mode-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.qr-mode-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.qr-mode').forEach(function(m) { m.classList.remove('active'); });
+            this.classList.add('active');
+            qrCurrentMode = this.dataset.mode;
+            document.getElementById('qr-mode-' + qrCurrentMode).classList.add('active');
+        });
+    });
+
+    // QR Image Upload - Click
+    var qrImageDrop = document.getElementById('qrImageDrop');
+    var qrImageInput = document.getElementById('qrImageInput');
+    if (qrImageDrop) {
+        qrImageDrop.addEventListener('click', function() { qrImageInput.click(); });
+        qrImageDrop.addEventListener('dragover', function(e) { e.preventDefault(); this.style.borderColor = 'var(--primary-color)'; });
+        qrImageDrop.addEventListener('dragleave', function() { this.style.borderColor = ''; });
+        qrImageDrop.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '';
+            if (e.dataTransfer.files.length) handleQRImage(e.dataTransfer.files[0]);
+        });
+    }
+    if (qrImageInput) {
+        qrImageInput.addEventListener('change', function() {
+            if (this.files.length) handleQRImage(this.files[0]);
+        });
+    }
+
+    function handleQRImage(file) {
+        if (!file.type.startsWith('image/')) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            qrImageDataURL = e.target.result;
+            document.getElementById('qrPreviewImg').src = qrImageDataURL;
+            document.getElementById('qrImagePreview').style.display = 'block';
+            document.getElementById('qrImageDrop').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    var qrRemoveImage = document.getElementById('qrRemoveImage');
+    if (qrRemoveImage) {
+        qrRemoveImage.addEventListener('click', function() {
+            qrImageDataURL = null;
+            document.getElementById('qrImagePreview').style.display = 'none';
+            document.getElementById('qrImageDrop').style.display = 'flex';
+            qrImageInput.value = '';
+        });
+    }
+
+    // QR Generate
     document.getElementById('qrGenerate').addEventListener('click', function() {
-        var input = document.getElementById('qrInput').value.trim();
         var output = document.getElementById('qrOutput');
         var downloadBtn = document.getElementById('qrDownload');
-        if (!input) return;
+        var qrStatus = document.getElementById('qrStatus');
+        var content = '';
+
+        if (qrCurrentMode === 'text') {
+            content = document.getElementById('qrInput').value.trim();
+        } else {
+            content = qrImageDataURL;
+        }
+
+        if (!content) {
+            qrStatus.textContent = qrCurrentMode === 'image' ? 'Hay chon anh truoc!' : 'Nhap noi dung truoc!';
+            qrStatus.className = 'tool-status text-danger';
+            return;
+        }
+
+        qrStatus.textContent = '';
         output.innerHTML = '';
         qrCodeInstance = new QRCode(output, {
-            text: input,
+            text: content,
             width: 200,
             height: 200,
             colorDark: '#00e676',
             colorLight: '#121212',
-            correctLevel: QRCode.CorrectLevel.H
+            correctLevel: QRCode.CorrectLevel.M
         });
         downloadBtn.style.display = 'inline-block';
     });
@@ -471,4 +541,118 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // --- Text to Speech ---
+    var ttsInput = document.getElementById('ttsInput');
+    var ttsPlay = document.getElementById('ttsPlay');
+    var ttsPause = document.getElementById('ttsPause');
+    var ttsStop = document.getElementById('ttsStop');
+    var ttsRate = document.getElementById('ttsRate');
+    var ttsPitch = document.getElementById('ttsPitch');
+    var ttsRateValue = document.getElementById('ttsRateValue');
+    var ttsPitchValue = document.getElementById('ttsPitchValue');
+    var ttsStatus = document.getElementById('ttsStatus');
+    var ttsVoiceList = document.getElementById('ttsVoiceList');
+    var ttsSelectedVoice = null;
+    var synth = window.speechSynthesis;
+
+    // Tải danh sách giọng
+    function loadVoices() {
+        var voices = synth.getVoices();
+        var vietnameseVoices = voices.filter(function(v) {
+            return v.lang.startsWith('vi');
+        });
+
+        if (vietnameseVoices.length === 0) {
+            ttsVoiceList.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-size:0.85rem;">Trinh duyet cua ban khong ho tro giong Viet Nam. Se dung giong mac dinh.</p>';
+            return;
+        }
+
+        ttsVoiceList.innerHTML = '';
+        vietnameseVoices.forEach(function(voice, i) {
+            var div = document.createElement('div');
+            div.className = 'tts-voice-item';
+            var isMale = voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('nam') || (i % 2 === 0 && vietnameseVoices.length > 1);
+            div.innerHTML = '<i class="bi bi-person-fill"></i> ' + voice.name + (isMale ? ' <span class="badge bg-primary" style="font-size:0.6rem;">NAM</span>' : '');
+            div.addEventListener('click', function() {
+                document.querySelectorAll('.tts-voice-item').forEach(function(v) { v.classList.remove('active'); });
+                div.classList.add('active');
+                ttsSelectedVoice = voice;
+            });
+            ttsVoiceList.appendChild(div);
+        });
+
+        // Tự chọn giọng nam
+        var maleVoice = vietnameseVoices.find(function(v) {
+            return v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('nam');
+        });
+        if (!maleVoice && vietnameseVoices.length > 0) maleVoice = vietnameseVoices[0];
+        if (maleVoice) {
+            ttsSelectedVoice = maleVoice;
+            var items = ttsVoiceList.querySelectorAll('.tts-voice-item');
+            if (items.length > 0) items[0].classList.add('active');
+        }
+    }
+
+    if (synth) {
+        loadVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+    }
+
+    ttsRate.addEventListener('input', function() { ttsRateValue.textContent = this.value; });
+    ttsPitch.addEventListener('input', function() { ttsPitchValue.textContent = this.value; });
+
+    ttsPlay.addEventListener('click', function() {
+        var text = ttsInput.value.trim();
+        if (!text) {
+            ttsStatus.textContent = 'Nhap text truoc!';
+            ttsStatus.className = 'tool-status text-danger';
+            return;
+        }
+
+        synth.cancel();
+        var utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'vi-VN';
+        utter.rate = parseFloat(ttsRate.value);
+        utter.pitch = parseFloat(ttsPitch.value);
+        if (ttsSelectedVoice) utter.voice = ttsSelectedVoice;
+
+        utter.onstart = function() {
+            ttsStatus.textContent = 'Dang doc...';
+            ttsStatus.className = 'tool-status text-success';
+            ttsPlay.style.display = 'none';
+            ttsPause.style.display = 'inline-block';
+        };
+        utter.onend = function() {
+            ttsStatus.textContent = 'Hoan tat!';
+            ttsStatus.className = 'tool-status';
+            ttsPlay.style.display = 'inline-block';
+            ttsPause.style.display = 'none';
+        };
+
+        synth.speak(utter);
+    });
+
+    ttsPause.addEventListener('click', function() {
+        if (synth.speaking) {
+            if (synth.paused) {
+                synth.resume();
+                ttsStatus.textContent = 'Dang doc...';
+                ttsPause.querySelector('i').className = 'bi bi-pause-fill';
+            } else {
+                synth.pause();
+                ttsStatus.textContent = 'Tam dung';
+                ttsPause.querySelector('i').className = 'bi bi-play-fill';
+            }
+        }
+    });
+
+    ttsStop.addEventListener('click', function() {
+        synth.cancel();
+        ttsStatus.textContent = '';
+        ttsPlay.style.display = 'inline-block';
+        ttsPause.style.display = 'none';
+    });
 });
