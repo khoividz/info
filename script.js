@@ -542,6 +542,186 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // =========== Dich Thuat (Translation) ===========
+    const trFrom  = document.getElementById('trFrom');
+    const trTo    = document.getElementById('trTo');
+    const trSwap  = document.getElementById('trSwap');
+    const trInput = document.getElementById('trInput');
+    const trOutput= document.getElementById('trOutput');
+    const trBtn   = document.getElementById('trBtn');
+    const trCopy  = document.getElementById('trCopy');
+    const trStatus= document.getElementById('trStatus');
+
+    if (trBtn) {
+      trSwap.addEventListener('click', () => {
+        const tmp = trFrom.value;
+        trFrom.value = trTo.value;
+        trTo.value = tmp;
+      });
+
+      trBtn.addEventListener('click', async () => {
+        const text = trInput.value.trim();
+        if (!text) { trStatus.textContent = 'Vui long nhap van ban'; return; }
+        trStatus.textContent = 'Dang dich...';
+        trBtn.disabled = true;
+        try {
+          const sl = trFrom.value;
+          const tl = trTo.value;
+          const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${tl}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.responseStatus === 200 && data.responseData) {
+            trOutput.value = data.responseData.translatedText;
+            trStatus.textContent = 'Dich thanh cong!';
+          } else {
+            trOutput.value = '';
+            trStatus.textContent = 'Loi: ' + (data.responseDetails || 'Khong the dich');
+          }
+        } catch(e) {
+          trStatus.textContent = 'Loi mang: ' + e.message;
+        } finally {
+          trBtn.disabled = false;
+        }
+      });
+
+      trCopy.addEventListener('click', () => {
+        if (trOutput.value) {
+          navigator.clipboard.writeText(trOutput.value).then(() => {
+            trCopy.innerHTML = '<i class="bi bi-check"></i> Da copy!';
+            setTimeout(() => { trCopy.innerHTML = '<i class="bi bi-clipboard"></i> Copy'; }, 2000);
+          });
+        }
+      });
+    }
+
+    // =========== Dong Ho (Real-time Clock) ===========
+    const clockBig      = document.getElementById('clockBig');
+    const clockDate     = document.getElementById('clockDate');
+    const clockDay      = document.getElementById('clockDay');
+    const clockTimezone = document.getElementById('clockTimezone');
+    const clockDays = ['Chu Nhat', 'Thu Hai', 'Thu Ba', 'Thu Tu', 'Thu Sau', 'Thu Sau', 'Thu Bay'];
+
+    function updateClock() {
+      if (!clockBig) return;
+      const tz = clockTimezone.value;
+      const now = new Date();
+      const opts = { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+      const dateOpts = { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' };
+      const timeStr = now.toLocaleTimeString('en-GB', opts);
+      const dateStr = now.toLocaleDateString('vi-VN', dateOpts);
+      const dayIdx = now.getDay();
+      clockBig.textContent = timeStr;
+      clockDate.textContent = dateStr;
+      clockDay.textContent = clockDays[dayIdx];
+    }
+
+    if (clockBig) {
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    // =========== Thoi Tiet (Weather - OpenWeatherMap) ===========
+    const weatherBtn    = document.getElementById('weatherBtn');
+    const weatherCity   = document.getElementById('weatherCity');
+    const weatherLoading= document.getElementById('weatherLoading');
+    const weatherError  = document.getElementById('weatherError');
+    const weatherResult = document.getElementById('weatherResult');
+    const wIcon   = document.getElementById('wIcon');
+    const wTemp   = document.getElementById('wTemp');
+    const wDesc   = document.getElementById('wDesc');
+    const wCity   = document.getElementById('wCity');
+    const wFeel   = document.getElementById('wFeel');
+    const wHumidity= document.getElementById('wHumidity');
+    const wWind   = document.getElementById('wWind');
+    const wVisibility= document.getElementById('wVisibility');
+    const wSunrise= document.getElementById('wSunrise');
+    const wSunset = document.getElementById('wSunset');
+    const wForecast= document.getElementById('wForecast');
+    const WEATHER_KEY = 'e470e5902bd876d038c4fc730b0a48e7';
+
+    function formatUnixTime(ts, tz) {
+      const d = new Date(ts * 1000);
+      return d.toLocaleTimeString('en-GB', { timeZone: tz || 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function forecastDay(dateStr) {
+      const d = new Date(dateStr);
+      const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+      return days[d.getDay()];
+    }
+
+    async function loadWeather(city) {
+      if (!city) return;
+      weatherLoading.style.display = 'block';
+      weatherError.style.display = 'none';
+      weatherResult.style.display = 'none';
+      weatherBtn.disabled = true;
+
+      try {
+        const curRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${WEATHER_KEY}&units=metric&lang=vi`);
+        if (!curRes.ok) { throw new Error('Khong tim thay thanh pho: ' + city); }
+        const cur = await curRes.json();
+
+        wIcon.src = `https://openweathermap.org/img/wn/${cur.weather[0].icon}@2x.png`;
+        wTemp.textContent = Math.round(cur.main.temp) + '°C';
+        wDesc.textContent = cur.weather[0].description;
+        wCity.textContent = cur.name + ', ' + cur.sys.country;
+        wFeel.textContent = Math.round(cur.main.feels_like) + '°C';
+        wHumidity.textContent = cur.main.humidity + '%';
+        wWind.textContent = cur.wind.speed + ' m/s';
+        wVisibility.textContent = ((cur.visibility || 0) / 1000).toFixed(1) + ' km';
+        wSunrise.textContent = formatUnixTime(cur.sys.sunrise);
+        wSunset.textContent = formatUnixTime(cur.sys.sunset);
+
+        const fcRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${WEATHER_KEY}&units=metric&lang=vi`);
+        const fc = await fcRes.json();
+
+        const dailyMap = {};
+        fc.list.forEach(item => {
+          const dt = new Date(item.dt * 1000);
+          const key = dt.toISOString().split('T')[0];
+          if (!dailyMap[key]) {
+            dailyMap[key] = { temps: [], descs: [], icons: [], date: item.dt_txt.split(' ')[0] };
+          }
+          dailyMap[key].temps.push(item.main.temp);
+          dailyMap[key].descs.push(item.weather[0].description);
+          dailyMap[key].icons.push(item.weather[0].icon);
+        });
+
+        wForecast.innerHTML = '';
+        const keys = Object.keys(dailyMap).slice(1, 6);
+        keys.forEach(k => {
+          const d = dailyMap[k];
+          const avg = d.temps.reduce((a,b)=>a+b,0) / d.temps.length;
+          const midIcon = d.icons[Math.floor(d.icons.length / 2)];
+          const midDesc = d.descs[Math.floor(d.descs.length / 2)];
+          wForecast.innerHTML += `
+            <div class="col">
+              <div class="forecast-card">
+                <div class="fc-day">${forecastDay(d.date)}</div>
+                <img class="fc-icon" src="https://openweathermap.org/img/wn/${midIcon}@2x.png" alt="">
+                <div class="fc-temp">${Math.round(avg)}°C</div>
+                <div class="fc-desc">${midDesc}</div>
+              </div>
+            </div>`;
+        });
+
+        weatherLoading.style.display = 'none';
+        weatherResult.style.display = 'block';
+      } catch(e) {
+        weatherLoading.style.display = 'none';
+        weatherError.style.display = 'block';
+        weatherError.querySelector('p').textContent = e.message;
+      } finally {
+        weatherBtn.disabled = false;
+      }
+    }
+
+    if (weatherBtn) {
+      weatherBtn.addEventListener('click', () => loadWeather(weatherCity.value.trim()));
+      weatherCity.addEventListener('keydown', e => { if (e.key === 'Enter') loadWeather(weatherCity.value.trim()); });
+    }
+
     // --- Text to Speech (ElevenLabs API) ---
     var ttsInput = document.getElementById('ttsInput');
     var ttsPlay = document.getElementById('ttsPlay');
