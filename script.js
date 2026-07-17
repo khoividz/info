@@ -515,11 +515,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const sectionHeight = current.offsetHeight;
             const sectionTop = current.offsetTop;
             const sectionId = current.getAttribute('id');
+            const navLink = document.querySelector('.navbar-nav .nav-link[href*=' + sectionId + ']');
+            if (!navLink) return;
 
             if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
-                document.querySelector('.navbar-nav .nav-link[href*=' + sectionId + ']').classList.add('active');
+                navLink.classList.add('active');
             } else {
-                document.querySelector('.navbar-nav .nav-link[href*=' + sectionId + ']').classList.remove('active');
+                navLink.classList.remove('active');
             }
         });
     }
